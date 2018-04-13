@@ -1,0 +1,122 @@
+#include<stdio.h>
+#include<stdio.h>
+#include<stdio.h>
+#include<string.h>
+#include<pthread.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include <stdbool.h>
+	int allocation[10][5], max[10][5], need[10][5];
+	int available[3], flag[10], sq[10];
+	int N, M, i, j, k;
+	int count, count1;
+	pthread_t tid[10];
+	int x=3;
+	pthread_mutex_t lk;
+void* Bank()
+{
+pthread_mutex_lock(&lk);
+printf("amount is  %d  \n",x);
+pthread_mutex_unlock(&lk);
+}
+int main()
+{
+		pthread_mutex_init(&lk, NULL);
+	printf("Enter the number of processes \n");
+	scanf("%d", &N);
+	for(i = 0; i < 10; i++)
+		flag[i] = 0;
+	printf("Enter the number of resources (<5)\n");
+	scanf("%d", &M);
+	printf("Enter the allocation matrix for the processes in row major order\n");
+	for(i = 0; i < N; i++)
+	{
+		printf("Process %d\n", i + 1);
+		for(j = 0; j < M; j++)
+		{
+			printf("\tResource %d:\t", j + 1);
+			scanf("%d", &allocation[i][j]);
+		}
+	}
+	printf("Enter the maximum number of resources that a process can have:\n");
+	for(i = 0; i < N; i++)
+	{
+		printf("Process %d\n", i + 1);
+		for(j = 0; j < M; j++)
+		{
+			printf("\tResource %d:\t", j + 1);
+			scanf("%d", &max[i][j]);
+		}
+	}
+	printf("Enter the number of instances of each available resource:\n");
+	for(i = 0; i < M; i++)
+	{
+		printf("Resource %d :\t", i + 1);
+		scanf("%d", &available[i]);
+	}
+	printf("The need matrix is as follows:\n");
+	for(i = 0; i < N; i++)
+	{
+		for(j = 0; j < M; j++)
+		{
+			need[i][j] = max[i][j] - allocation[i][j];
+			printf("\t%d", need[i][j]);
+		}
+		printf("\n");
+	}
+	do
+	{
+		for(k = 0; k < N; k++)
+		{
+			for(i = 0; i < N; i++)
+			{
+				if(flag[i] == 0)
+				{
+					count = 0;
+					for(j = 0; j < M; j++)
+					{
+						if(available[j] >= need[i][j])
+							count++;
+					}
+					if(count == M)
+					{
+						count1++;
+						flag[i] = 1;
+						sq[count1 - 1] = i;
+
+						for(j = 0; j < M; j++)
+						{
+							available[j] = available[j] + allocation[i][j];
+						}
+						break;
+					}
+				}
+			}
+		}
+		if(count1 != N)
+		{
+			printf("Unsafe State\n");
+			break;
+		}
+	}while(count1 != N);
+	if(count1 == N)
+	{
+		printf("Safe State\n");
+		printf("The safe sequence is:\n");
+		for(i = 0; i < N; i++)
+			printf("P%d\t", sq[i]);
+		printf("\n");
+		printf("The available matrix is now:\t");
+		for(i = 0; i < M; i++)
+			printf("\t%d", available[i]);
+	}
+	printf("\n");
+	for(j=0;j<N;j++)
+	{
+		int ps=sq[j];
+		printf("\n\n\n Process number = %d",ps); 
+	  pthread_create(&tid[ps],NULL,&Bank,NULL);
+	 sleep(1);
+	}	
+}
+
